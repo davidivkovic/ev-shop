@@ -14,7 +14,7 @@
 
 </script>
 
-<dialog bind:this={dialog} class="min-w-[300px] p-6 backdrop:bg-black/40 relative">
+<dialog bind:this={dialog} class="min-w-[300px] rounded-lg p-6 backdrop:bg-black/40 relative">
   {#if hasCloseButton}
     <button class="absolute top-5 right-0 bg-transparent" on:click={close}>
       <XIcon/>

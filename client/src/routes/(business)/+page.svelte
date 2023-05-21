@@ -10,7 +10,6 @@
   import { isAuthenticated, user, isCustomer } from '$lib/stores/userStore'
 
   export let data
-  $: requests = data ? data.requests : []
 
   $: !$isAuthenticated && goto('/login')
 
@@ -22,17 +21,18 @@
     const shops = await getShops(make)
     openDialog(RequestRepairDialog, { problems, shops }, async() => await invalidateAll())
   }
+
 </script>
 
 <div class="flex">
   <div>
-    <h1 class="text-xl">{isCustomer ? 'View your repair requests' : 'Your repair shop'}</h1>
+    <h1 class="text-xl">{$isCustomer ? 'View your repair requests' : 'Your repair shop'}</h1>
     <p class="text-sm">
-      {isCustomer ? 'Click on a repair request below to see details' : `Repairing ${brands}`}
+      {$isCustomer ? 'Click on a repair request below to see details' : `Repairing ${brands}`}
     </p>
   </div>
 
-  {#if isCustomer}
+  {#if $isCustomer}
     <button
       on:click={openRequestRepairDialog}
       class="secondary ml-auto mt-1 h-11 !border-neutral-300 py-1 px-10 !text-sm"

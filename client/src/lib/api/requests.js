@@ -12,4 +12,16 @@ const getAllRequests = async () => {
   return await response.json()
 }
 
-export { getAllProblems, getAllRequests }
+const acceptRequest = async (id, scheduledAt) =>
+  await fetch(`${requestsUrls}/${id}`, {
+    method: 'POST',
+    body: JSON.stringify({ scheduledAt, accepted: true })
+  })
+
+const rejectRequest = async (id) =>
+  await fetch(`${requestsUrls}/${id}`, {
+    method: 'POST',
+    body: JSON.stringify({ accepted: false })
+  })
+
+export { getAllProblems, getAllRequests, acceptRequest, rejectRequest }
