@@ -1,0 +1,226 @@
+package rules;
+
+import sbnz.vehicles.*;
+
+declare SessionStart end
+
+declare BatteryControllerOk end
+declare BatteryOk end
+declare BmsOk end
+
+declare DcAcInverterOk end
+declare PwmControllerOk end
+declare PseOk end
+
+declare EngineBearingsOk end
+declare EngineTemperatureOk end
+declare EngineOk end
+
+global Diagnostic diagnostic;
+
+// Start Block 1
+
+rule "Initial "
+    salience 100
+    when
+        $problem: Problem(type == Problem.Types.CHARGING)
+    then
+        delete($problem);
+        diagnostic.requestMeasurement("V", "Measurement of BMS voltage");
+end
+
+rule "BMS (Battery Management System) voltage is unstable -> Faulty Battery Controller"
+    salience 98
+    when
+        not BatteryControllerOk()
+        $measurement: Number(doubleValue > 22.8 && doubleValue < 25.2)
+    then
+        delete($measurement);
+        insert(new BatteryControllerOk());
+        diagnostic.requestMeasurement("I", "Measurement of BMS current");
+end
+
+rule "Faulty Battery Controller"
+    salience 97
+    when
+        not BatteryControllerOk()
+        $measurement: Number()
+    then
+        delete($measurement);
+        insert(new Solution("The battery controller is faulty. Replace it."));
+end
+
+rule "BMS voltage is stable but current is low -> Faulty Battery"
+    salience 96
+    when
+        not BatteryOk()
+        BatteryControllerOk()
+        $measurement: Number(doubleValue >= 225)
+    then
+        delete($measurement);
+        insert(new BatteryOk());
+end
+
+rule "Faulty Battery"
+    salience 95
+    when
+        not BatteryOk()
+        BatteryControllerOk()
+        $measurement: Number()
+    then
+        delete($measurement);
+        insert(new Solution("The battery is faulty. Replace it."));
+end
+
+rule "BMS is OK -> Check Power Supply Electronics"
+    salience 94
+    when
+        BatteryOk()
+        BatteryControllerOk()
+    then
+        insert(new BmsOk());
+end
+
+// End block 1
+
+// Start block 2
+
+rule "Initial 2"
+    salience 93
+    when
+        BmsOk();
+        not DcAcInverterOk();
+        not PwmControllerOk();
+    then
+        diagnostic.requestMeasurement("V", "Measurement of Power Supply Electronics voltage");
+end
+
+rule "Power Supply Electronics voltage is low -> Faulty DC-AC Inverter"
+    salience 92
+    when
+        BmsOk()
+        not DcAcInverterOk()
+        $measurement: Number(doubleValue >= 320)
+    then
+        delete($measurement);
+        insert(new DcAcInverterOk());
+        diagnostic.requestMeasurement("I", "Measurement of Power Supply Electronics current");
+end
+
+rule "Faulty DC-AC Inverter"
+    salience 91
+    when
+        BmsOk()
+        not DcAcInverterOk()
+        $measurement: Number()
+    then
+        delete($measurement);
+        insert(new Solution("The DC-AC inverter is faulty. Replace it."));
+end
+
+rule "Power Supply Electronics voltage is OK but current is low -> Faulty PWM Controller"
+    salience 90
+    when
+        BmsOk()
+        DcAcInverterOk()
+        not PwmControllerOk()
+        $measurement: Number(doubleValue >= 1000)
+    then
+        delete($measurement);
+        insert(new PwmControllerOk());
+end
+
+rule "Faulty PWM Controller"
+    salience 89
+    when
+        BmsOk()
+        DcAcInverterOk()
+        not PwmControllerOk()
+        $measurement: Number()
+    then
+        delete($measurement);
+        insert(new Solution("The PWM controller is faulty. Replace it."));
+end
+
+rule "Power Supply Electronics is OK -> Check Engine"
+    salience 88
+    when
+        BmsOk()
+        DcAcInverterOk()
+        PwmControllerOk()
+    then
+        insert(new PseOk());
+end
+
+// End block 2
+
+// Start block 3
+
+rule "Initial 3"
+    salience 87
+    when
+        PseOk();
+        not EngineBearingsOk();
+        not EngineTemperatureOk();
+    then
+        diagnostic.requestMeasurement("yes/no", "Is the engine making a strange noise or brushing sound?");
+end
+
+rule "Engine is making a strange noise or brushing sound -> Faulty Engine Bearings"
+    salience 86
+    when
+        PseOk()
+        not EngineBearingsOk()
+        $measurement: String(this == "no")
+    then
+        delete($measurement);
+        insert(new EngineBearingsOk());
+        diagnostic.requestMeasurement("°C", "Measurement of Engine temperature");
+end
+
+rule "Faulty Engine Bearings"
+    salience 85
+    when
+        PseOk()
+        not EngineBearingsOk()
+        $measurement: String(this == "yes")
+    then
+        delete($measurement);
+        insert(new Solution("The engine bearings are faulty. Replace them."));
+end
+
+rule "Engine sounds ok but temperature is high -> Faulty Engine"
+    salience 84
+    when
+        PseOk()
+        EngineBearingsOk()
+        not EngineTemperatureOk()
+        $measurement: Number(doubleValue <= 90)
+    then
+        delete($measurement);
+        insert(new EngineTemperatureOk());
+end
+
+rule "Faulty Engine"
+    salience 83
+    when
+        PseOk()
+        EngineBearingsOk()
+        not EngineTemperatureOk()
+        $measurement: Number()
+    then
+        delete($measurement);
+        insert(new Solution("The engine cooling system is faulty. Replace it."));
+end
+
+rule "Engine is OK -> Check Engine"
+    salience 82
+    when
+        PseOk()
+        EngineBearingsOk()
+        EngineTemperatureOk()
+    then
+        insert(new EngineOk());
+end
+
+// End block 3
