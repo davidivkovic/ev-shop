@@ -24,4 +24,17 @@ const rejectRequest = async (id) =>
     body: JSON.stringify({ accepted: false })
   })
 
-export { getAllProblems, getAllRequests, acceptRequest, rejectRequest }
+const resetDiagnostics = async (id) =>
+  await fetch(`${requestsUrls}/${id}/reset-diagnostics`, { method: 'POST' })
+
+const diagnostics = async (id, measurement) => {
+  const response = await fetch(
+    `${requestsUrls}/${id}/diagnostics?${new URLSearchParams({ measurement }).toString()}`,
+    {
+      method: 'POST'
+    }
+  )
+  return await response.json()
+}
+
+export { getAllProblems, getAllRequests, acceptRequest, rejectRequest, resetDiagnostics, diagnostics }

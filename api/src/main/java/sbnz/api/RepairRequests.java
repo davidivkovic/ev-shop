@@ -102,7 +102,7 @@ public class RepairRequests extends Resource {
     @POST
     @Path("/{id}/reset-diagnostics")
     @Authenticated
-    public Response reset() {
+    public Response reset(@PathParam("id") String id) {
         var user = userId();
         if (sessions.containsKey(user)) {
             sessions.get(user).kSession.dispose();
@@ -154,7 +154,7 @@ public class RepairRequests extends Resource {
 
         FactHandle handle = null;
 
-        if (measurement != null) {
+        if (measurement != null && !measurement.equals("null")) {
             var value = (measurement.equals("yes") || measurement.equals("no"))
                     ? measurement
                     : Double.parseDouble(measurement);

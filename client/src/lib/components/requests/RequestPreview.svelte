@@ -8,6 +8,7 @@
   import { isCustomer } from '$lib/stores/userStore'
   import { openDialog } from '$lib/stores/appStore'
   import RequestProcessDialog from './RequestProcessDialog.svelte'
+  import DiagnosisDialog from '../diagnostics/DiagnosisDialog.svelte'
 
   export let request
 
@@ -17,6 +18,10 @@
 
   const openProcessDialog = () => {
     openDialog(RequestProcessDialog, { requestId: request.id }, async () => await invalidateAll())
+  }
+
+  const openDiagnosticDialog = () => {
+    openDialog(DiagnosisDialog, {request}, async result => result === 'ok' && await invalidateAll())
   }
 </script>
 
@@ -40,13 +45,15 @@
         <span class="block text-[13px] font-semibold">Reported problem</span>
         <span class="text-[13px]">{request.problem.description}</span>
         {#if request.scheduledAt !== null}
-          <div class="text-[13px]">Scheduled at {dayjs(request.scheduledAt).format('MMMM D, YYYY h:mm A')}</div>
+          <div class="text-[13px]">
+            Scheduled at {dayjs(request.scheduledAt).format('MMMM D, YYYY h:mm A')}
+          </div>
         {/if}
       </div>
     </div>
 
     <div class="flex items-center gap-1.5">
-      {#if requestStatus !== 'Pending' || $isCustomer}
+      {#if (requestStatus !== 'Pending' && requestStatus !== 'Accepted') || $isCustomer}
         <span class="text-[13px] font-medium">{requestStatus}</span>
       {/if}
       {#if requestStatus === 'Pending'}
@@ -56,7 +63,13 @@
           <button on:click={openProcessDialog} class="secondary">Process</button>
         {/if}
       {:else if requestStatus === 'Accepted'}
-        <CheckIcon class="h-4 w-4" />
+        {#if $isCustomer}
+          <CheckIcon class="h-4 w-4" />
+        {:else if request.solution.part}
+          <span class="text-sm">Finished</span>
+        {:else}
+          <button on:click={openDiagnosticDialog} class="secondary !text-sm">Diagnostics</button>
+        {/if}
       {:else}
         <XIcon class="h-4 w-4 text-red-500" />
       {/if}
