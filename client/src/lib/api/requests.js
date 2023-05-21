@@ -13,13 +13,13 @@ const getAllRequests = async () => {
 }
 
 const acceptRequest = async (id, scheduledAt) =>
-  await fetch(`${requestsUrls}/${id}`, {
+  await fetch(`${requestsUrls}/${id}/update-status`, {
     method: 'POST',
     body: JSON.stringify({ scheduledAt, accepted: true })
   })
 
 const rejectRequest = async (id) =>
-  await fetch(`${requestsUrls}/${id}`, {
+  await fetch(`${requestsUrls}/${id}/update-status`, {
     method: 'POST',
     body: JSON.stringify({ accepted: false })
   })

@@ -39,10 +39,6 @@ public class RepairShop extends PanacheMongoEntity {
             .ifPresent(rule -> {
                 partQuantityAlarmRules.remove(rule);
             });
-
-        // Compile drt and insert drl string into partQuantityAlarmRules
-
-        this.update();
     }
 
     public void reduceQuantity(String partMake, String partType) {
