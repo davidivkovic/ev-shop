@@ -1,5 +1,6 @@
 <script>
   import { goto } from '$app/navigation'
+  import auth from '$lib/stores/userStore'
   import { addShop } from '$lib/api/shops'
 
   import CarPicker from '$lib/components/vehicles/CarPicker.svelte'
@@ -12,7 +13,8 @@
       const { name, address, ...others } = Object.fromEntries(formData)
       const brands = Object.values({ ...others })
       await addShop({ name, address, brands })
-      goto('/')
+      auth.logout()
+      goto('/login')
     } catch (err) {
       console.log(err)
     }

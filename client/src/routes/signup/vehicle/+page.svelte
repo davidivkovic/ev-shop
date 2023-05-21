@@ -3,6 +3,7 @@
 
   import CarPicker from '$lib/components/vehicles/CarPicker.svelte'
   import { addVehicle } from '$lib/api/vehicles'
+  import auth from '$lib/stores/userStore'
 
   let vehicleForm
 
@@ -11,7 +12,8 @@
       const formData = new FormData(vehicleForm)
       const data = Object.fromEntries(formData)
       await addVehicle(data)
-      goto('/')
+      auth.logout()
+      goto('/login')
     } catch (err) {
       console.log(err)
     }

@@ -26,7 +26,7 @@
   }
 
   button {
-    @apply bg-neutral-50 rounded-md px-6 py-3 text-[15px] font-medium transition duration-300 focus-visible:outline-none;
+    @apply bg-neutral-50 rounded-md px-5 py-3 text-[15px] font-medium transition duration-300 focus-visible:outline-none;
   }
 
   button.primary {

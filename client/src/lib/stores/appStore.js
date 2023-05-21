@@ -5,6 +5,8 @@ export const notifications = writable([])
 
 export const openDialog = (dialogComponent, props = {}, onClose = (value = '') => {}) => {
   const id = get(dialogs).length + 1
+  console.log(onClose)
+
   const dialog = {
     id,
     props,

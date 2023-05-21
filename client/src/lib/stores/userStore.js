@@ -9,7 +9,7 @@ const savedUser = JSON.parse(storage.getItem(userKey)) ?? {}
 
 export const user = writable(savedUser)
 export const isAuthenticated = derived(user, ($user) => Object.keys($user).length > 0)
-export const isAdmin = derived(user, ($user) => Object.keys($user).length > 0 && $user.role === 'admin')
+export const isCustomer = derived(user, ($user) => Object.keys($user).length > 0 && $user.role === 'customer')
 
 const login = (newUser, accessToken) => {
   storage.setItem(userKey, JSON.stringify(newUser))

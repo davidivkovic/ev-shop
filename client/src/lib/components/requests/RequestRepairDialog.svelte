@@ -3,14 +3,13 @@
 
   import { user } from '$lib/stores/userStore'
   import { requestRepair } from '$lib/api/vehicles'
-  import { openDialog } from '$lib/stores/appStore'
-  import { goto } from '$app/navigation'
 
   export let close
   export let problems
   export let shops
   let requestForm
 
+  console.log(close)
   const { make, model, registration } = get(user).vehicle
 
   const request = async () => {
@@ -18,7 +17,7 @@
       const form = new FormData(requestForm)
       const data = Object.fromEntries(form.entries())
       await requestRepair(data)
-      close()
+      await close()
     } catch (e) {
       console.log(e)
     }

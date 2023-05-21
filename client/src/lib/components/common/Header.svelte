@@ -12,7 +12,7 @@
         class="text-sm font-medium underline-offset-2"
         class:underline={$page.url.pathname === '/'}
       >
-        Requests
+        Repair requests
       </a>
       {#if $user.role === 'repairman'}
         <a
