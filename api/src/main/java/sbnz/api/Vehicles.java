@@ -7,6 +7,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.bson.types.ObjectId;
 import sbnz.vehicles.EV;
 import sbnz.vehicles.Problem;
 import sbnz.vehicles.RepairRequest;
@@ -40,7 +41,7 @@ public class Vehicles extends Resource {
         var user = User.findById(userId());
         if (user == null) return badRequest("User not found.");
 
-        RepairShop shop = RepairShop.findById(shopId);
+        RepairShop shop = RepairShop.findById(new ObjectId(shopId));
         if (shop == null) return badRequest("Shop not found.");
 
         var problem = Problem.getType(problemType);

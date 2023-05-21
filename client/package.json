@@ -1,0 +1,36 @@
+{
+  "name": "client",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "vite dev --host",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "prettier --plugin-search-dir . --check .",
+    "format": "prettier --plugin-search-dir . --write ."
+  },
+  "devDependencies": {
+    "@iconify-json/tabler": "^1.1.68",
+    "@sveltejs/adapter-auto": "^2.0.0",
+    "@sveltejs/adapter-static": "^2.0.1",
+    "@sveltejs/kit": "^1.5.0",
+    "@sveltejs/vite-plugin-svelte": "^2.0.3",
+    "@tailwindcss/forms": "^0.5.3",
+    "autoprefixer": "^10.4.14",
+    "postcss": "^8.4.21",
+    "prettier": "^2.8.0",
+    "prettier-plugin-svelte": "^2.8.1",
+    "prettier-plugin-tailwindcss": "^0.2.5",
+    "svelte": "^3.54.0",
+    "tailwindcss": "^3.2.7",
+    "unplugin-icons": "^0.15.3",
+    "vite": "^4.2.0"
+  },
+  "type": "module",
+  "dependencies": {
+    "@peculiar/x509": "^1.9.3",
+    "dayjs": "^1.11.7",
+    "flag-icons": "^6.6.6",
+    "i18n-iso-countries": "^7.5.0"
+  }
+}
