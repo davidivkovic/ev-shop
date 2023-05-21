@@ -35,10 +35,10 @@ public class RepairRequests extends Resource {
 
     public static Map<String, Session> sessions = new HashMap<>();
 
-    private KieSession createKieSessionFromDRL(String drl){
+    private KieSession createKieSessionFromDRL(List<String> rules){
 
         var kbuilder = KnowledgeBuilderFactory.newKnowledgeBuilder();
-        kbuilder.add(new ByteArrayResource(drl.getBytes()), ResourceType.DRL);
+        rules.forEach(rule -> kbuilder.add(new ByteArrayResource(rule.getBytes()), ResourceType.DRL));
         var kbase = kbuilder.newKieBase();
         return kbase.newKieSession();
 
@@ -135,10 +135,11 @@ public class RepairRequests extends Resource {
             kSession.setGlobal("vehicle", request.vehicle);
 
             RepairShop shop = RepairShop.findById(request.shop.id);
-            var alarmRules = String.join("\n", shop.partQuantityAlarmRules);
-            sessions.put(user, new Session(request, kSession, createKieSessionFromDRL(alarmRules)));
+            sessions.put(user, new Session(
+                request, kSession, createKieSessionFromDRL(shop.partQuantityAlarmRules)
+            ));
 
-            var problem = Problem.getType(request.problem.type());
+            var problem = new Problem(request.problem.type());
             kSession.insert(problem);
         }
 
