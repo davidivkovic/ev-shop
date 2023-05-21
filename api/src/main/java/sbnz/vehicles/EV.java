@@ -9,6 +9,8 @@ public class EV extends PanacheMongoEntity {
     public int year;
     public String registration;
 
+    public EV() {}
+
     public EV(String make, String model, int year, String registration) {
         this.make = make;
         this.model = model;

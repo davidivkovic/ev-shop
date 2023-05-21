@@ -14,6 +14,8 @@ public class RepairRequest extends PanacheMongoEntity {
     public boolean rejected;
     public LocalDateTime scheduledAt;
 
+    public RepairRequest() {}
+
     public RepairRequest(String userId, EV vehicle, RepairShop shop, Problem.Type problem) {
         this.userId = userId;
         this.vehicle = vehicle;

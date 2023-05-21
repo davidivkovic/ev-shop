@@ -1,10 +1,7 @@
 package sbnz.api;
 
 import io.quarkus.security.Authenticated;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import sbnz.vehicles.RepairShop;
@@ -22,6 +19,8 @@ public class RepairShops extends Resource {
         if (user == null) return badRequest("User not found.");
 
         user.shop = shop;
+
+        shop.persist();
         user.update();
 
         return ok();
@@ -29,8 +28,8 @@ public class RepairShops extends Resource {
 
     @GET
     @Path("/")
-    public Response getShops() {
-        var shops = RepairShop.listAll();
+    public Response getShops(@QueryParam("brand") String brand) {
+        var shops = RepairShop.list("brands = ?1", brand);
         return ok(shops);
     }
 

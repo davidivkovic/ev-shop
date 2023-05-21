@@ -10,6 +10,8 @@ public class RepairShop extends PanacheMongoEntity {
     public String address;
     public List<String> brands;
 
+    public RepairShop() {}
+
     public RepairShop(String name, String address, List<String> brands) {
         this.name = name;
         this.address = address;

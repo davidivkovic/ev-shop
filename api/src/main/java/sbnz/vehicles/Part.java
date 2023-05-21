@@ -7,4 +7,11 @@ public class Part extends PanacheMongoEntity {
     public String make;
     public String name;
 
+    public Part() {}
+
+    public Part(String make, String name) {
+        this.make = make;
+        this.name = name;
+    }
+
 }
