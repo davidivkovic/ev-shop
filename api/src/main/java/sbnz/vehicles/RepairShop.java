@@ -9,6 +9,7 @@ public class RepairShop extends PanacheMongoEntity {
     public String name;
     public String address;
     public List<String> brands;
+    public List<Part> parts;
 
     public RepairShop() {}
 

@@ -2,7 +2,9 @@ package sbnz.vehicles;
 
 public class Solution {
 
+    public Part part;
     public String description;
+    public double price;
 
     public Solution(String description) {
         this.description = description;

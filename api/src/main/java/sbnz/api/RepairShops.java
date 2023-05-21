@@ -33,4 +33,13 @@ public class RepairShops extends Resource {
         return ok(shops);
     }
 
+    @GET
+    @Path("/{id}/parts")
+    public Response getParts(@PathParam("id") String id) {
+        RepairShop shop = RepairShop.findById(id);
+        if (shop == null) return badRequest("Shop not found.");
+
+        return ok(shop.parts);
+    }
+
 }
