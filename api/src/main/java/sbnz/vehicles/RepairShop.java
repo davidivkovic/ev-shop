@@ -2,6 +2,7 @@ package sbnz.vehicles;
 
 import io.quarkus.mongodb.panache.PanacheMongoEntity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class RepairShop extends PanacheMongoEntity {
@@ -10,6 +11,11 @@ public class RepairShop extends PanacheMongoEntity {
     public String address;
     public List<String> brands;
     public List<Part> parts;
+    public List<String> partQuantityAlarmRules = new ArrayList<>();
+
+    public List<Part> getParts() {
+        return this.parts;
+    }
 
     public RepairShop() {}
 
@@ -17,22 +23,31 @@ public class RepairShop extends PanacheMongoEntity {
         this.name = name;
         this.address = address;
         this.brands = brands;
-        this.parts = brands.stream().flatMap(b -> Part.getAllParts(b).stream()).toList();
     }
 
-    public void setAlarmQuantity(String partType, int quantity) {
+    public void setAlarmQuantity(String partMake, String partType, int quantity) {
         for (Part part : parts) {
-            if (part.type.equals(partType)) {
+            if (part.type.equals(partType) && part.make.equals(partMake)) {
                 part.alarmQuantity = quantity;
                 break;
             }
         }
+        partQuantityAlarmRules
+            .stream()
+            .filter(rule -> rule.contains("part-quantity-alarm_" + partMake  + "-" + partType))
+            .findFirst()
+            .ifPresent(rule -> {
+                partQuantityAlarmRules.remove(rule);
+            });
+
+        // Compile drt and insert drl string into partQuantityAlarmRules
+
         this.update();
     }
 
-    public void reduceQuantity(String partType) {
+    public void reduceQuantity(String partMake, String partType) {
         for (Part part : parts) {
-            if (part.type.equals(partType)) {
+            if (part.type.equals(partType) && part.make.equals(partMake)) {
                 part.quantity -= 1;
                 break;
             }

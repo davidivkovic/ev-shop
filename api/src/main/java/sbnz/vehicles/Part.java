@@ -1,10 +1,10 @@
 package sbnz.vehicles;
 
-import io.quarkus.mongodb.panache.PanacheMongoEntity;
-
 import java.util.List;
 
-public class Part extends PanacheMongoEntity {
+public class Part {
+
+    public record QuantityAlarm(Part part) {}
 
     public String make;
     public String type;

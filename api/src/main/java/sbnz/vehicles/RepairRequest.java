@@ -13,7 +13,8 @@ public class RepairRequest extends PanacheMongoEntity {
     public boolean accepted;
     public boolean rejected;
     public LocalDateTime scheduledAt;
-    public Solution solution;
+    public Solution solution = new Solution();
+    public Part.QuantityAlarm alarm;
 
     public boolean completed() {
         return this.solution != null;
@@ -40,7 +41,7 @@ public class RepairRequest extends PanacheMongoEntity {
     public void complete(Solution solution) {
         this.solution = solution;
         this.solution.price = this.solution.price * 10 + solution.part.price;
-        this.shop.reduceQuantity(solution.part.type);
+        this.shop.reduceQuantity(solution.part.make, solution.part.type);
         this.update();
     }
 }

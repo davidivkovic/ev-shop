@@ -18,4 +18,8 @@ public class EV extends PanacheMongoEntity {
         this.registration = registration;
     }
 
+    public String getMake() {
+    	return this.make;
+    }
+
 }

@@ -1,0 +1,29 @@
+template header
+make
+type
+alarmQuantity
+
+package rules;
+
+import sbnz.vehicles.*;
+import sbnz.vehicles.Part.QuantityAlarm;
+import java.util.List;
+
+template "parts-quantity-template"
+
+rule "part-quantity-alarm_@{make}-@{type}"
+    no-loop true
+    when
+        $repairRequest: RepairRequest($shop: shop)
+        $parts: List() from collect (
+           Part(
+              make == "@{make}",
+              type == "@{type}",
+              quantity < @{alarmQuantity}
+           ) from $shop.getParts()
+        )
+    then
+        insert(new QuantityAlarm((Part) $parts.get(0)));
+end
+
+end template

@@ -25,6 +25,7 @@ public class Vehicles extends Resource {
         var user = User.findById(userId());
         if (user == null) return badRequest("User not found.");
 
+        vehicle.persist();
         user.vehicle = vehicle;
         user.update();
 

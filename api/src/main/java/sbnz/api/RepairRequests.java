@@ -2,32 +2,59 @@ package sbnz.api;
 
 import io.quarkus.security.Authenticated;
 import org.bson.types.ObjectId;
+import org.drools.io.ByteArrayResource;
 import org.kie.api.KieServices;
+import org.kie.api.builder.Message;
+import org.kie.api.builder.Results;
+import org.kie.api.io.ResourceType;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.ObjectFilter;
 import org.kie.api.runtime.rule.FactHandle;
+import org.kie.internal.builder.KnowledgeBuilderFactory;
+import org.kie.internal.utils.KieHelper;
 import sbnz.api.dto.repair_requests.RepairRequestDTO;
-import sbnz.vehicles.Diagnostic;
-import sbnz.vehicles.Problem;
-import sbnz.vehicles.RepairRequest;
+import sbnz.users.User;
+import sbnz.vehicles.*;
 
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import sbnz.vehicles.Solution;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Path("/repair-requests")
 @Produces(MediaType.APPLICATION_JSON)
 public class RepairRequests extends Resource {
 
-    public record Session(RepairRequest request, KieSession kSession) { }
+    public record Session(RepairRequest request, KieSession kSession, KieSession drtKSession) { }
 
     public static Map<String, Session> sessions = new HashMap<>();
+
+    private KieSession createKieSessionFromDRL(String drl){
+
+        var kbuilder = KnowledgeBuilderFactory.newKnowledgeBuilder();
+        kbuilder.add(new ByteArrayResource(drl.getBytes()), ResourceType.DRL);
+        var kbase = kbuilder.newKieBase();
+        return kbase.newKieSession();
+
+//        Results results = kieHelper.verify();
+//
+//        if (results.hasMessages(Message.Level.WARNING, Message.Level.ERROR)){
+//            List<Message> messages = results.getMessages(Message.Level.WARNING, Message.Level.ERROR);
+//            for (Message message : messages) {
+//                System.out.println("Error: "+message.getText());
+//            }
+//
+//            throw new IllegalStateException("Compilation errors were found. Check the logs.");
+//        }
+
+//        return kieHelper.build().newKieSession();
+    }
 
     @GET
     @Path("/problems")
@@ -36,9 +63,10 @@ public class RepairRequests extends Resource {
     }
 
     @POST
-    @Path("/{id}")
+    @Path("/{id}/update-status")
+    @Authenticated
     public Response update(@PathParam("id") String id, RepairRequestDTO dto) {
-        RepairRequest request = RepairRequest.findById(id);
+        RepairRequest request = RepairRequest.findById(new ObjectId(id));
         if (request == null) return badRequest("Request not found.");
 
         if (dto.accepted) request.accept(dto.scheduledAt);
@@ -50,16 +78,22 @@ public class RepairRequests extends Resource {
     }
 
     @GET
+    @Authenticated
     @Path("/")
     public Response getAll() {
-        var requests = RepairRequest.listAll();
-        return ok(requests);
+        User user = User.findById(userId());
+        if (user == null) return badRequest("User not found.");
+
+        return user.isRole(User.Roles.CUSTOMER)
+            ? ok(RepairRequest.list("userId = ?1", userId()))
+            : ok(RepairRequest.list("shop._id = ?1", user.shop.id));
     }
 
     @GET
+    @Authenticated
     @Path("/{id}")
     public Response get(@PathParam("id") String id) {
-        var request = RepairRequest.findById(id);
+        var request = RepairRequest.findById(new ObjectId(id));
         if (request == null) return badRequest("Request not found.");
 
         return ok(request);
@@ -85,7 +119,6 @@ public class RepairRequests extends Resource {
             @PathParam("id") String id,
             @QueryParam("measurement") String measurement
     ) {
-
         var user = userId();
         boolean initialSession = !sessions.containsKey(user);
 
@@ -101,15 +134,18 @@ public class RepairRequests extends Resource {
             kSession.setGlobal("diagnostic", new Diagnostic());
             kSession.setGlobal("vehicle", request.vehicle);
 
-            sessions.put(user, new Session(request, kSession));
+            RepairShop shop = RepairShop.findById(request.shop.id);
+            var alarmRules = String.join("\n", shop.partQuantityAlarmRules);
+            sessions.put(user, new Session(request, kSession, createKieSessionFromDRL(alarmRules)));
 
-            var problem = new Problem(Problem.Types.CHARGING);
+            var problem = Problem.getType(request.problem.type());
             kSession.insert(problem);
         }
 
         var session = sessions.get(user);
 
         var kSession = session.kSession;
+        var drtKSession = session.drtKSession;
         var request = session.request;
 
         var diagnostic = (Diagnostic) session.kSession.getGlobal("diagnostic");
@@ -117,7 +153,7 @@ public class RepairRequests extends Resource {
 
         FactHandle handle = null;
 
-        if (!initialSession && measurement != null) {
+        if (measurement != null) {
             var value = (measurement.equals("yes") || measurement.equals("no"))
                     ? measurement
                     : Double.parseDouble(measurement);
@@ -129,21 +165,27 @@ public class RepairRequests extends Resource {
 
         if (handle != null) kSession.delete(handle);
 
-        var filter = new ObjectFilter()
-        {
-            @Override
-            public boolean accept( Object object )
-            {
-                return object.getClass().getName().equals(Solution.class.getName());
-            }
-        };
-
-        var results = (Collection<Solution>) kSession.getObjects(filter);
+        var results = (Collection<Solution>) kSession.getObjects(
+            object -> object.getClass().getName().equals(Solution.class.getName())
+        );
         var solution = results.stream().findFirst().orElse(null);
 
         if (solution != null) {
             request.complete(solution);
-            kSession.insert(request);
+
+            var requestHandle = kSession.insert(request);
+            kSession.fireAllRules();
+            kSession.delete(requestHandle);
+
+            var alarms = (Collection<Part.QuantityAlarm>) kSession.getObjects(
+                object -> object.getClass().getName().equals(Part.QuantityAlarm.class.getName())
+            );
+            request.alarm = alarms.stream().findFirst().orElse(null);
+
+            kSession.dispose();
+            drtKSession.dispose();
+            sessions.remove(user);
+
             return ok(request);
         }
 
