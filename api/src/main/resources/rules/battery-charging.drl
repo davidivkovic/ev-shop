@@ -204,7 +204,7 @@ rule "Faulty Engine Bearings"
         delete($measurement);
         insert(new Solution(
             Part.engineBearings(vehicle.getMake()),
-            "The engine bearings are most likely to be work out or damaged. You will need to replace them."
+            "The engine bearings are most likely to be worn out or damaged. You will need to replace them."
         ));
 end
 

@@ -39,6 +39,7 @@ public class RepairRequest extends PanacheMongoEntity {
     }
 
     public void complete(Solution solution) {
+        solution.price = this.solution.price;
         this.solution = solution;
         this.solution.price = this.solution.price * 10 + solution.part.price;
         this.shop.reduceQuantity(solution.part.make, solution.part.type);

@@ -1,0 +1,20 @@
+package rules;
+
+import sbnz.vehicles.events.*;
+
+rule "Battery fire alarm when "
+    when
+        $e1: BatteryTemperatureEvent($vehicleId: vehicleId)
+        Number(intValue >= 10) from accumulate(
+            $e2: BatteryTemperatureEvent(
+                this != $e1,
+                temperature > 125,
+                vehicleId == $vehicleId,
+                this meets[90s] $e1
+            ),
+            count($e2)
+        )
+        not (BatteryTemperatureAlarm(vehicleId == $vehicleId))
+    then
+        insert(new BatteryTemperatureAlarm($vehicleId, $e1.getTemperature()));
+end
