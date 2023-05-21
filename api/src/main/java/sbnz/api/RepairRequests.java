@@ -99,6 +99,8 @@ public class RepairRequests extends Resource {
             KieSession kSession = kc.newKieSession();
 
             kSession.setGlobal("diagnostic", new Diagnostic());
+            kSession.setGlobal("vehicle", request.vehicle);
+
             sessions.put(user, new Session(request, kSession));
 
             var problem = new Problem(Problem.Types.CHARGING);
@@ -141,6 +143,7 @@ public class RepairRequests extends Resource {
 
         if (solution != null) {
             request.complete(solution);
+            kSession.insert(request);
             return ok(request);
         }
 

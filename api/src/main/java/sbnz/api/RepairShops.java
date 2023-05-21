@@ -34,12 +34,37 @@ public class RepairShops extends Resource {
     }
 
     @GET
+    @Path("/{id}/brands")
+    public Response getBrands(@PathParam("id") String id) {
+        RepairShop shop = RepairShop.findById(id);
+        if (shop == null) return badRequest("Shop not found.");
+
+        return ok(shop.brands);
+    }
+
+    @GET
     @Path("/{id}/parts")
     public Response getParts(@PathParam("id") String id) {
         RepairShop shop = RepairShop.findById(id);
         if (shop == null) return badRequest("Shop not found.");
 
         return ok(shop.parts);
+    }
+
+    @POST
+    @Path("/{id}/parts/alarm-quantity")
+    public Response setAlarmQuantity(
+            @PathParam("id") String id,
+            @QueryParam("part") String partType,
+            @QueryParam("quantity") int quantity
+    ) {
+        RepairShop shop = RepairShop.findById(id);
+        if (shop == null) return badRequest("Shop not found.");
+
+        shop.setAlarmQuantity(partType, quantity);
+        shop.update();
+
+        return ok();
     }
 
 }

@@ -45,11 +45,4 @@ public class Auth extends Resource {
         return ok();
     }
 
-    @GET
-    @Authenticated
-    @Path("/testing")
-    public Response testing() {
-       return ok(userId());
-    }
-
 }

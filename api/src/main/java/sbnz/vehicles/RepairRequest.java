@@ -15,6 +15,9 @@ public class RepairRequest extends PanacheMongoEntity {
     public LocalDateTime scheduledAt;
     public Solution solution;
 
+    public boolean completed() {
+        return this.solution != null;
+    }
 
     public RepairRequest() {}
 
@@ -37,6 +40,7 @@ public class RepairRequest extends PanacheMongoEntity {
     public void complete(Solution solution) {
         this.solution = solution;
         this.solution.price = this.solution.price * 10 + solution.part.price;
+        this.shop.reduceQuantity(solution.part.type);
         this.update();
     }
 }

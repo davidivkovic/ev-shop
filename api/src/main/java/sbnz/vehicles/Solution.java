@@ -6,8 +6,12 @@ public class Solution {
     public String description;
     public double price;
 
-    public Solution(String description) {
+    public Solution() {}
+
+    public Solution(Part part, String description) {
+        this.part = part;
         this.description = description;
+        this.price = 0;
     }
 
     public String getDescription() {

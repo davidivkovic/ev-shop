@@ -17,6 +17,7 @@ declare EngineTemperatureOk end
 declare EngineOk end
 
 global Diagnostic diagnostic;
+global EV vehicle;
 
 // Start Block 1
 
@@ -26,7 +27,7 @@ rule "Initial "
         $problem: Problem(type == Problem.Types.CHARGING)
     then
         delete($problem);
-        diagnostic.requestMeasurement("V", "Measurement of BMS voltage");
+        diagnostic.requestMeasurement("V", "Supply a measurement of the BMS output voltage.");
 end
 
 rule "BMS (Battery Management System) voltage is unstable -> Faulty Battery Controller"
@@ -37,7 +38,7 @@ rule "BMS (Battery Management System) voltage is unstable -> Faulty Battery Cont
     then
         delete($measurement);
         insert(new BatteryControllerOk());
-        diagnostic.requestMeasurement("I", "Measurement of BMS current");
+        diagnostic.requestMeasurement("I", "Supply a measurement of BMS output current");
 end
 
 rule "Faulty Battery Controller"
@@ -47,7 +48,10 @@ rule "Faulty Battery Controller"
         $measurement: Number()
     then
         delete($measurement);
-        insert(new Solution("The battery controller is faulty. Replace it."));
+        insert(new Solution(
+            Part.batteryController(vehicle.make),
+            "The battery controller of the vehicle is most likely faulty. You will need to replace it."
+        ));
 end
 
 rule "BMS voltage is stable but current is low -> Faulty Battery"
@@ -69,7 +73,10 @@ rule "Faulty Battery"
         $measurement: Number()
     then
         delete($measurement);
-        insert(new Solution("The battery is faulty. Replace it."));
+        insert(new Solution(
+            Part.battery(vehicle.make),
+            "The battery of the vehicle is most likely to be permanently damaged. You will need to replace it.")
+        );
 end
 
 rule "BMS is OK -> Check Power Supply Electronics"
@@ -92,7 +99,7 @@ rule "Initial 2"
         not DcAcInverterOk();
         not PwmControllerOk();
     then
-        diagnostic.requestMeasurement("V", "Measurement of Power Supply Electronics voltage");
+        diagnostic.requestMeasurement("V", "Supply a measurement of the Power Supply Electronics output voltage");
 end
 
 rule "Power Supply Electronics voltage is low -> Faulty DC-AC Inverter"
@@ -104,7 +111,7 @@ rule "Power Supply Electronics voltage is low -> Faulty DC-AC Inverter"
     then
         delete($measurement);
         insert(new DcAcInverterOk());
-        diagnostic.requestMeasurement("I", "Measurement of Power Supply Electronics current");
+        diagnostic.requestMeasurement("I", "Supply a measurement of Power Supply Electronics output current");
 end
 
 rule "Faulty DC-AC Inverter"
@@ -115,7 +122,10 @@ rule "Faulty DC-AC Inverter"
         $measurement: Number()
     then
         delete($measurement);
-        insert(new Solution("The DC-AC inverter is faulty. Replace it."));
+        insert(new Solution(
+            Part.dcAcInverter(vehicle.make),
+            "The DC-AC inverter powering the electric engine is not working properly. You will need to replace it.")
+        );
 end
 
 rule "Power Supply Electronics voltage is OK but current is low -> Faulty PWM Controller"
@@ -139,7 +149,10 @@ rule "Faulty PWM Controller"
         $measurement: Number()
     then
         delete($measurement);
-        insert(new Solution("The PWM controller is faulty. Replace it."));
+        insert(new Solution(
+            Part.pwmController(vehicle.make),
+            "The PWM Controller that controls the power supply electronics is not working properly. You will need to replace it."
+        ));
 end
 
 rule "Power Supply Electronics is OK -> Check Engine"
@@ -163,7 +176,7 @@ rule "Initial 3"
         not EngineBearingsOk();
         not EngineTemperatureOk();
     then
-        diagnostic.requestMeasurement("yes/no", "Is the engine making a strange noise or brushing sound?");
+        diagnostic.requestMeasurement("yes/no", "Is the engine making strange noises or brushing sounds?");
 end
 
 rule "Engine is making a strange noise or brushing sound -> Faulty Engine Bearings"
@@ -175,7 +188,7 @@ rule "Engine is making a strange noise or brushing sound -> Faulty Engine Bearin
     then
         delete($measurement);
         insert(new EngineBearingsOk());
-        diagnostic.requestMeasurement("°C", "Measurement of Engine temperature");
+        diagnostic.requestMeasurement("°C", "Supply a temperature measurement of the outer casing of the electric engine.");
 end
 
 rule "Faulty Engine Bearings"
@@ -186,7 +199,10 @@ rule "Faulty Engine Bearings"
         $measurement: String(this == "yes")
     then
         delete($measurement);
-        insert(new Solution("The engine bearings are faulty. Replace them."));
+        insert(new Solution(
+            Part.engineBearings(vehicle.make),
+            "The engine bearings are most likely to be work out or damaged. You will need to replace them."
+        ));
 end
 
 rule "Engine sounds ok but temperature is high -> Faulty Engine"
@@ -210,7 +226,10 @@ rule "Faulty Engine"
         $measurement: Number()
     then
         delete($measurement);
-        insert(new Solution("The engine cooling system is faulty. Replace it."));
+        insert(new Solution(
+            Part.coolingSystem(vehicle.make),
+            "The engine cooling system malfunctioning or is likely to be damaged. You will need to replace it."
+        ));
 end
 
 rule "Engine is OK -> Check Engine"
