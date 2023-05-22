@@ -24,6 +24,7 @@
 <table class="mt-5 table-auto w-full text-sm" >
   <thead class="border-b">
     <tr class="text-left">
+      <th>Part make</th>
       <th>Part name</th>
       <th>Price</th>
       <th>Quantity</th>
@@ -33,9 +34,10 @@
   <tbody>
     {#each data.parts as part}
       <tr>
+        <td class="py-3">{part.make}</td>
         <td class="py-3">{part.name}</td>
         <td>${part.price}</td>
-        <td>{part.quantity}</td>
+        <td>{Math.max(0, part.quantity)}</td>
         <td class="w-32">
           <select on:change={(e) => changeAlarmQuantity(e, part.make, part.type)} name="alarm-quantity" class="text-sm">
             {#each quantityArray as quantity}

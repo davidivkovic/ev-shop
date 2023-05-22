@@ -2,7 +2,7 @@ package rules;
 
 import sbnz.vehicles.events.*;
 
-rule "Battery fire alarm when "
+rule "Battery fire alarm when temparature is above 125 C for 10 events in 90 seconds"
     when
         $e1: BatteryTemperatureEvent($vehicleId: vehicleId)
         Number(intValue >= 10) from accumulate(

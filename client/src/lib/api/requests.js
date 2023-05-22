@@ -37,4 +37,22 @@ const diagnostics = async (id, measurement) => {
   return await response.json()
 }
 
-export { getAllProblems, getAllRequests, acceptRequest, rejectRequest, resetDiagnostics, diagnostics }
+const simulation = async (id, command) => {
+  const response = await fetch(
+    `${requestsUrls}/${id}/sim?${new URLSearchParams({ command }).toString()}`,
+    {
+      method: 'POST'
+    }
+  )
+  if (command === 'status') return await response.json()
+}
+
+export {
+  getAllProblems,
+  getAllRequests,
+  acceptRequest,
+  rejectRequest,
+  resetDiagnostics,
+  diagnostics,
+  simulation
+}

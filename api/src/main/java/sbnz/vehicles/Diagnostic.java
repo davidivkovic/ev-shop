@@ -6,6 +6,8 @@ public class Diagnostic {
 
     public Measurement currentMeasurement;
 
+    public static Measurement notFound = new Measurement("not-found", "", "");
+
     public void requestMeasurement(String unit, String message) {
         System.out.println("Requesting measurement: " + message + " in " + unit);
         var type = unit.equals("yes/no") ? "boolean" : "number";

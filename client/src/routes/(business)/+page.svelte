@@ -14,7 +14,7 @@
   $: !$isAuthenticated && goto('/login')
 
   $: make = get(user).vehicle?.make
-  $: brands = get(user).shop?.brands.join(', ')
+  $: brands = get(user).shop?.brands.join(' and ')
 
   const openRequestRepairDialog = async () => {
     const problems = await getAllProblems()
@@ -28,7 +28,7 @@
   <div>
     <h1 class="text-xl">{$isCustomer ? 'View your repair requests' : 'Your repair shop'}</h1>
     <p class="text-sm">
-      {$isCustomer ? 'Click on a repair request below to see details' : `Repairing ${brands}`}
+      {$isCustomer ? 'Click on a repair request below to see details' : `You are certified to service ${brands} vehicles`}
     </p>
   </div>
 

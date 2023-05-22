@@ -21,7 +21,7 @@ public class Part {
         this.name = name;
         this.price = price;
         this.quantity = quantity;
-        this.alarmQuantity = quantity;
+        this.alarmQuantity = 0;
     }
 
     public static Part battery(String make) {
@@ -60,8 +60,20 @@ public class Part {
         return new Part(make, "suspension", "Suspension", 1000, 1);
     }
 
-    public static Part brakes(String make) {
-        return new Part(make, "brakes", "Brakes", 1000, 1);
+    public static Part brakeDiscs(String make) {
+        return new Part(make, "brake-discs", "Brake Discs", 1000, 1);
+    }
+
+    public static Part brakingFluid(String make) {
+        return new Part(make, "braking-fluid", "Braking Fluid", 1000, 1);
+    }
+
+    public static Part ers(String make) {
+        return new Part(make, "ers", "Energy Recovery System", 1000, 1);
+    }
+
+    public static Part adjustErsRatio(String make) {
+        return new Part(make, "adjust-ers-ratio", "Adjust ERS Ratio", 100, 1);
     }
 
     public static Part wheels(String make) {
@@ -76,7 +88,10 @@ public class Part {
             dcAcInverter(make),
             gearbox(make),
             suspension(make),
-            brakes(make),
+            brakeDiscs(make),
+            brakingFluid(make),
+            ers(make),
+            adjustErsRatio(make),
             wheels(make)
         );
     }

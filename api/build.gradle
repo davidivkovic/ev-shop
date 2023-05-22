@@ -23,6 +23,7 @@ dependencies {
     implementation 'io.quarkus:quarkus-smallrye-jwt-build'
     implementation 'io.quarkus:quarkus-arc'
     implementation 'io.quarkus:quarkus-resteasy'
+    implementation 'io.quarkus:quarkus-scheduler'
     implementation 'org.drools:drools-core:8.38.0.Final'
     implementation 'org.drools:drools-compiler:8.38.0.Final'
     implementation 'org.drools:drools-xml-support:8.38.0.Final'

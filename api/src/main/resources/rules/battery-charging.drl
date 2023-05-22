@@ -5,7 +5,7 @@ import sbnz.vehicles.Part.QuantityAlarm;
 import sbnz.vehicles.RepairShop;
 import java.util.List;
 
-declare SessionStart end
+declare SessionStarted end
 
 declare BatteryControllerOk end
 declare BatteryOk end
@@ -27,26 +27,29 @@ global EV vehicle;
 rule "Initial "
     salience 100
     when
+        not SessionStarted()
         $problem: Problem(type == Problem.Types.CHARGING)
     then
-        delete($problem);
-        diagnostic.requestMeasurement("V", "Supply a measurement of the BMS output voltage.");
+        insert(new SessionStarted());
+        diagnostic.requestMeasurement("V", "Supply a measurement of the BMS output voltage (min. 22.8V max. 25.2V)");
 end
 
 rule "BMS (Battery Management System) voltage is unstable -> Faulty Battery Controller"
     salience 98
     when
+        Problem(type == Problem.Types.CHARGING)
         not BatteryControllerOk()
         $measurement: Number(doubleValue > 22.8 && doubleValue < 25.2)
     then
         delete($measurement);
         insert(new BatteryControllerOk());
-        diagnostic.requestMeasurement("I", "Supply a measurement of BMS output current");
+        diagnostic.requestMeasurement("A", "Supply a measurement of BMS output current (min. 225A)");
 end
 
 rule "Faulty Battery Controller"
     salience 97
     when
+        Problem(type == Problem.Types.CHARGING)
         not BatteryControllerOk()
         $measurement: Number()
     then
@@ -60,6 +63,7 @@ end
 rule "BMS voltage is stable but current is low -> Faulty Battery"
     salience 96
     when
+        Problem(type == Problem.Types.CHARGING)
         not BatteryOk()
         BatteryControllerOk()
         $measurement: Number(doubleValue >= 225)
@@ -71,6 +75,7 @@ end
 rule "Faulty Battery"
     salience 95
     when
+        Problem(type == Problem.Types.CHARGING)
         not BatteryOk()
         BatteryControllerOk()
         $measurement: Number()
@@ -85,6 +90,7 @@ end
 rule "BMS is OK -> Check Power Supply Electronics"
     salience 94
     when
+        Problem(type == Problem.Types.CHARGING)
         BatteryOk()
         BatteryControllerOk()
     then
@@ -98,28 +104,31 @@ end
 rule "Initial 2"
     salience 93
     when
+        Problem(type == Problem.Types.CHARGING)
         BmsOk();
         not DcAcInverterOk();
         not PwmControllerOk();
     then
-        diagnostic.requestMeasurement("V", "Supply a measurement of the Power Supply Electronics output voltage");
+        diagnostic.requestMeasurement("V", "Supply a measurement of the Power Supply Electronics output voltage (min. 320V)");
 end
 
 rule "Power Supply Electronics voltage is low -> Faulty DC-AC Inverter"
     salience 92
     when
+        Problem(type == Problem.Types.CHARGING)
         BmsOk()
         not DcAcInverterOk()
         $measurement: Number(doubleValue >= 320)
     then
         delete($measurement);
         insert(new DcAcInverterOk());
-        diagnostic.requestMeasurement("I", "Supply a measurement of Power Supply Electronics output current");
+        diagnostic.requestMeasurement("A", "Supply a measurement of Power Supply Electronics output current (min. 1000A)");
 end
 
 rule "Faulty DC-AC Inverter"
     salience 91
     when
+        Problem(type == Problem.Types.CHARGING)
         BmsOk()
         not DcAcInverterOk()
         $measurement: Number()
@@ -134,6 +143,7 @@ end
 rule "Power Supply Electronics voltage is OK but current is low -> Faulty PWM Controller"
     salience 90
     when
+        Problem(type == Problem.Types.CHARGING)
         BmsOk()
         DcAcInverterOk()
         not PwmControllerOk()
@@ -146,6 +156,7 @@ end
 rule "Faulty PWM Controller"
     salience 89
     when
+        Problem(type == Problem.Types.CHARGING)
         BmsOk()
         DcAcInverterOk()
         not PwmControllerOk()
@@ -161,6 +172,7 @@ end
 rule "Power Supply Electronics is OK -> Check Engine"
     salience 88
     when
+        Problem(type == Problem.Types.CHARGING)
         BmsOk()
         DcAcInverterOk()
         PwmControllerOk()
@@ -175,28 +187,31 @@ end
 rule "Initial 3"
     salience 87
     when
+        Problem(type == Problem.Types.CHARGING)
         PseOk();
         not EngineBearingsOk();
         not EngineTemperatureOk();
     then
-        diagnostic.requestMeasurement("yes/no", "Is the engine making strange noises or brushing sounds?");
+        diagnostic.requestMeasurement("yes/no", "Is the engine making strange noises or brushing sounds? (norm. no");
 end
 
 rule "Engine is making a strange noise or brushing sound -> Faulty Engine Bearings"
     salience 86
     when
+        Problem(type == Problem.Types.CHARGING)
         PseOk()
         not EngineBearingsOk()
         $measurement: String(this == "no")
     then
         delete($measurement);
         insert(new EngineBearingsOk());
-        diagnostic.requestMeasurement("°C", "Supply a temperature measurement of the outer casing of the electric engine.");
+        diagnostic.requestMeasurement("°C", "Supply a temperature measurement of the outer casing of the electric engine (max. 90°C)");
 end
 
 rule "Faulty Engine Bearings"
     salience 85
     when
+        Problem(type == Problem.Types.CHARGING)
         PseOk()
         not EngineBearingsOk()
         $measurement: String(this == "yes")
@@ -211,6 +226,7 @@ end
 rule "Engine sounds ok but temperature is high -> Faulty Engine"
     salience 84
     when
+        Problem(type == Problem.Types.CHARGING)
         PseOk()
         EngineBearingsOk()
         not EngineTemperatureOk()
@@ -223,6 +239,7 @@ end
 rule "Faulty Engine"
     salience 83
     when
+        Problem(type == Problem.Types.CHARGING)
         PseOk()
         EngineBearingsOk()
         not EngineTemperatureOk()
@@ -238,6 +255,7 @@ end
 rule "Engine is OK -> Check Engine"
     salience 82
     when
+        Problem(type == Problem.Types.CHARGING)
         PseOk()
         EngineBearingsOk()
         EngineTemperatureOk()

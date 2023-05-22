@@ -1,6 +1,7 @@
 package sbnz.api;
 
 import io.quarkus.security.Authenticated;
+import jakarta.inject.Inject;
 import org.bson.types.ObjectId;
 import org.drools.io.ByteArrayResource;
 import org.kie.api.KieServices;
@@ -31,29 +32,17 @@ import java.util.stream.Collectors;
 @Produces(MediaType.APPLICATION_JSON)
 public class RepairRequests extends Resource {
 
+    @Inject Sim simulator;
+
     public record Session(RepairRequest request, KieSession kSession, KieSession drtKSession) { }
 
     public static Map<String, Session> sessions = new HashMap<>();
 
     private KieSession createKieSessionFromDRL(List<String> rules){
-
-        var kbuilder = KnowledgeBuilderFactory.newKnowledgeBuilder();
-        rules.forEach(rule -> kbuilder.add(new ByteArrayResource(rule.getBytes()), ResourceType.DRL));
-        var kbase = kbuilder.newKieBase();
-        return kbase.newKieSession();
-
-//        Results results = kieHelper.verify();
-//
-//        if (results.hasMessages(Message.Level.WARNING, Message.Level.ERROR)){
-//            List<Message> messages = results.getMessages(Message.Level.WARNING, Message.Level.ERROR);
-//            for (Message message : messages) {
-//                System.out.println("Error: "+message.getText());
-//            }
-//
-//            throw new IllegalStateException("Compilation errors were found. Check the logs.");
-//        }
-
-//        return kieHelper.build().newKieSession();
+        var kBuilder = KnowledgeBuilderFactory.newKnowledgeBuilder();
+        rules.forEach(rule -> kBuilder.add(new ByteArrayResource(rule.getBytes()), ResourceType.DRL));
+        var kBase = kBuilder.newKieBase();
+        return kBase.newKieSession();
     }
 
     @GET
@@ -164,7 +153,7 @@ public class RepairRequests extends Resource {
         long ruleFireCount = kSession.fireAllRules();
         System.out.println("Fired " + ruleFireCount + " rules.");
 
-        if (handle != null) kSession.delete(handle);
+//        if (handle != null) kSession.delete(handle);
 
         var results = (Collection<Solution>) kSession.getObjects(
             object -> object.getClass().getName().equals(Solution.class.getName())
@@ -172,13 +161,21 @@ public class RepairRequests extends Resource {
         var solution = results.stream().findFirst().orElse(null);
 
         if (solution != null) {
+
+            RepairShop shop = RepairShop.findById(request.shop.id);
+            shop.reduceQuantity(solution.part.make, solution.part.type);
+            shop.update();
+
+            request.shop = shop;
             request.complete(solution);
 
-            var requestHandle = kSession.insert(request);
-            kSession.fireAllRules();
-            kSession.delete(requestHandle);
+            // Fire DRT rules for quantity alarms
 
-            var alarms = (Collection<Part.QuantityAlarm>) kSession.getObjects(
+            var requestHandle = drtKSession.insert(request);
+            drtKSession.fireAllRules();
+            drtKSession.delete(requestHandle);
+
+            var alarms = (Collection<Part.QuantityAlarm>) drtKSession.getObjects(
                 object -> object.getClass().getName().equals(Part.QuantityAlarm.class.getName())
             );
             request.alarm = alarms.stream().findFirst().orElse(null);
@@ -191,7 +188,32 @@ public class RepairRequests extends Resource {
         }
 
         request.solution.price++;
-        return ok(diagnostic.currentMeasurement);
+        return ok(diagnostic.currentMeasurement != null
+                ? diagnostic.currentMeasurement
+                : Diagnostic.notFound
+        );
+    }
+
+    @POST
+    @Path("/{id}/sim")
+    @Authenticated
+    public Response simulation(
+            @PathParam("id") String id,
+            @QueryParam("command") String command
+    ) {
+        RepairRequest request = RepairRequest.findById(new ObjectId(id));
+        if (request == null) return badRequest("Repair request not found.");
+
+        switch (command) {
+            case "start" -> simulator.start(userId(), request.vehicle.id.toString());
+            case "stop" -> simulator.stop();
+            case "status" -> {
+                return ok(simulator.getAlarm());
+            }
+            case "reset" -> simulator.reset();
+        }
+
+        return ok();
     }
 
 }

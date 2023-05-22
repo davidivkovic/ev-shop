@@ -1,0 +1,192 @@
+package rules;
+
+import sbnz.vehicles.*;
+import sbnz.vehicles.Part.QuantityAlarm;
+import sbnz.vehicles.RepairShop;
+import java.util.List;
+
+declare SessionStarted end
+
+declare BrakeDiscsOk end
+declare BrakeForceOk end
+declare BrakesOk end
+
+declare ErsChargingOk end
+declare ErsCurrentOk end
+declare ErsOk end
+
+global Diagnostic diagnostic;
+global EV vehicle;
+
+// Start Block 1
+
+rule "Brakes Initial 1"
+    salience 100
+    when
+        not SessionStarted()
+        $problem: Problem(type == Problem.Types.BRAKES)
+    then
+        System.out.println("100");
+        insert(new SessionStarted());
+        diagnostic.requestMeasurement("mm", "Supply a measurement of the brake discs thickness (min. 12mm)");
+end
+
+rule "Brake discs are worn out -> Faulty Brake Discs"
+    salience 98
+    when
+        Problem(type == Problem.Types.BRAKES)
+        not BrakeDiscsOk()
+        $measurement: Number(doubleValue >= 12.0)
+    then
+        System.out.println("98");
+        delete($measurement);
+        insert(new BrakeDiscsOk());
+        diagnostic.requestMeasurement("kN", "Supply a measurement of the brake force (min. 1kN)");
+end
+
+rule "Faulty Brake Discs"
+    salience 97
+    when
+        Problem(type == Problem.Types.BRAKES)
+        not BrakeDiscsOk()
+        $measurement: Number()
+    then
+        System.out.println("97");
+        delete($measurement);
+        insert(new Solution(
+            Part.brakeDiscs(vehicle.getMake()),
+            "The brake discs of the vehicle are worn out. You will need to replace them."
+        ));
+end
+
+rule "Brake discs are OK but brake force is low -> Low brake fluid"
+    salience 96
+    when
+        Problem(type == Problem.Types.BRAKES)
+        not BrakeForceOk()
+        BrakeDiscsOk()
+        $measurement: Number(doubleValue >= 1.0)
+    then
+        System.out.println("96");
+        delete($measurement);
+        insert(new BrakeForceOk());
+end
+
+rule "Low brake fluid"
+    salience 95
+    when
+        Problem(type == Problem.Types.BRAKES)
+        not BrakeForceOk()
+        BrakeDiscsOk()
+        $measurement: Number()
+    then
+        System.out.println("95");
+        delete($measurement);
+        insert(new Solution(
+            Part.brakingFluid(vehicle.getMake()),
+            "The fluid of the braking system is most likely low. You will need to refill it.")
+        );
+end
+
+rule "Brakes are OK -> Check ERS"
+    salience 94
+    when
+        Problem(type == Problem.Types.BRAKES)
+        BrakeForceOk()
+        BrakeDiscsOk()
+        not BrakesOk()
+    then
+        System.out.println("94");
+        insert(new BrakesOk());
+end
+
+// End block 1
+
+// Start block 2
+
+rule "Brakes Initial 2"
+    salience 93
+    when
+        Problem(type == Problem.Types.BRAKES)
+        BrakesOk();
+        not ErsChargingOk();
+        not ErsCurrentOk();
+    then
+        System.out.println("93");
+        diagnostic.requestMeasurement("yes/no", "Is the Energy Recovery System charging the battery? (norm. yes)");
+end
+
+rule "ERS is not charging the battery -> faulty ERS"
+    salience 92
+    when
+        Problem(type == Problem.Types.BRAKES)
+        BrakesOk()
+        not ErsChargingOk()
+        $measurement: String(this == "yes")
+    then
+        System.out.println("92");
+        delete($measurement);
+        insert(new ErsChargingOk());
+        diagnostic.requestMeasurement("A", "Supply a measurement of the Energy Recovery System output current. (min. 200A)");
+end
+
+rule "Faulty ERS"
+    salience 91
+    when
+        Problem(type == Problem.Types.BRAKES)
+        BrakesOk()
+        not ErsChargingOk()
+        $measurement: String(this == "no")
+    then
+        System.out.println("91");
+        delete($measurement);
+        insert(new Solution(
+            Part.ers(vehicle.getMake()),
+            "The Energy Recovery System of the vehicle is not charging the battery. You will need to replace it."
+        ));
+end
+
+rule "ERS is charging the battery but the current is low -> adjust ERS ratio"
+    salience 90
+    when
+        Problem(type == Problem.Types.BRAKES)
+        BrakesOk()
+        ErsChargingOk()
+        not ErsCurrentOk()
+        $measurement: Number(doubleValue >= 200)
+    then
+        System.out.println("90");
+        delete($measurement);
+        insert(new ErsCurrentOk());
+end
+
+rule "Adjust ERS ratio"
+    salience 89
+    when
+        Problem(type == Problem.Types.BRAKES)
+        BrakesOk()
+        ErsChargingOk()
+        not ErsCurrentOk()
+        $measurement: Number()
+    then
+        System.out.println("89");
+        delete($measurement);
+        insert(new Solution(
+            Part.adjustErsRatio(vehicle.getMake()),
+            "The Energy Recovery System of the vehicle is not charging the battery with enough current. You will need to adjust the braking ratio."
+        ));
+end
+
+rule "ERS is OK -> Vehicle is OK"
+    salience 88
+    when
+        Problem(type == Problem.Types.BRAKES)
+        BrakesOk()
+        ErsChargingOk()
+        ErsCurrentOk()
+    then
+        System.out.println("88");
+        insert(new ErsOk());
+end
+
+// End block 2

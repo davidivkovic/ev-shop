@@ -10,6 +10,8 @@
   import RequestProcessDialog from './RequestProcessDialog.svelte'
   import DiagnosisDialog from '../diagnostics/DiagnosisDialog.svelte'
 
+  import { resetDiagnostics } from '$lib/api/requests'
+
   export let request
 
   const { make, model, registration } = request.vehicle
@@ -21,11 +23,14 @@
   }
 
   const openDiagnosticDialog = () => {
-    openDialog(DiagnosisDialog, {request}, async result => result === 'ok' && await invalidateAll())
+    openDialog(DiagnosisDialog, {request}, async result => {
+      if (result === 'ok') await invalidateAll()
+      else await resetDiagnostics(request.id)
+    })
   }
 </script>
 
-<div class="h-30 w-full rounded-xl border border-neutral-300 bg-white p-5">
+<div class="h-30 w-full rounded-lg border border-neutral-300 bg-white p-5 pr-8">
   <div class="flex items-center justify-between">
     <div class="flex items-center gap-10">
       <div class="flex items-center">
@@ -60,15 +65,15 @@
         {#if $isCustomer}
           <ClockIcon class="h-4 w-4 text-amber-500" />
         {:else}
-          <button on:click={openProcessDialog} class="secondary">Process</button>
+          <button on:click={openProcessDialog} class="secondary !text-[13px] !py-2 !px-[22px]">Process</button>
         {/if}
       {:else if requestStatus === 'Accepted'}
         {#if $isCustomer}
           <CheckIcon class="h-4 w-4" />
         {:else if request.solution.part}
-          <span class="text-sm">Finished</span>
+          <span class="text-[13px] font-medium">Finished</span>
         {:else}
-          <button on:click={openDiagnosticDialog} class="secondary !text-sm">Diagnostics</button>
+          <button on:click={openDiagnosticDialog} class="secondary !text-[13px] !py-2 !px-3">Diagnostics</button>
         {/if}
       {:else}
         <XIcon class="h-4 w-4 text-red-500" />

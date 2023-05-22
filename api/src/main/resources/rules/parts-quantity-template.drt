@@ -19,11 +19,13 @@ rule "part-quantity-alarm_@{make}-@{type}"
            Part(
               make == "@{make}",
               type == "@{type}",
-              quantity < @{alarmQuantity}
+              quantity <= @{alarmQuantity}
            ) from $shop.getParts()
         )
     then
-        insert(new QuantityAlarm((Part) $parts.get(0)));
+        if ($parts.size() > 0) {
+            insert(new QuantityAlarm((Part) $parts.get(0)));
+        }
 end
 
 end template

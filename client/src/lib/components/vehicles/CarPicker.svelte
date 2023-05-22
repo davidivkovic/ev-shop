@@ -5,7 +5,7 @@
 
   const makes = {
     Tesla: ['Model X', 'Model Y', 'Model 3', 'Model S'],
-    Kia: ['Soul EV', 'Niro EV', 'EV6'],
+    Kia: ['Soul EV', 'Niro EV', 'EV6', 'EV8'],
     BMW: ['BMW i3', 'BMW i4', 'BMW iX3', 'BMW i8'],
     Audi: ['Q4 e-tron', 'e-tron GT', 'e-tron', 'e-tron Sportback']
   }
