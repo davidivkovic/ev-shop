@@ -25,59 +25,59 @@ public class Part {
     }
 
     public static Part battery(String make) {
-         return new Part(make, "battery", "Battery", 10000, 1);
+         return new Part(make, "battery", "Battery", 22450, 2);
     }
 
     public static Part electricMotor(String make) {
-         return new Part(make, "electric-motor", "Electric motor", 5000, 1);
+         return new Part(make, "electric-motor", "Electric motor", 18500, 3);
     }
 
     public static Part batteryController(String make) {
-        return new Part(make, "battery-controller", "Battery Controller", 1000, 1);
+        return new Part(make, "battery-controller", "Battery Controller", 1450, 4);
     }
 
     public static Part dcAcInverter(String make) {
-        return new Part(make, "dc-ac-inverter", "DC-AC Inverter", 1000, 1);
+        return new Part(make, "dc-ac-inverter", "DC-AC Inverter", 920, 4);
     }
 
     public static Part pwmController(String make) {
-        return new Part(make, "pwm-controller", "PWM Controller", 1000, 1);
+        return new Part(make, "pwm-controller", "PWM Controller", 580, 5);
     }
 
     public static Part coolingSystem(String make) {
-        return new Part(make, "cooling-system", "Cooling System", 1000, 1);
+        return new Part(make, "cooling-system", "Cooling System", 340, 3);
     }
 
     public static Part engineBearings(String make) {
-        return new Part(make, "engine-bearings", "Engine Bearings", 1000, 1);
+        return new Part(make, "engine-bearings", "Engine Bearings", 280, 12);
     }
 
     public static Part gearbox(String make) {
-        return new Part(make, "gearbox", "Gearbox", 1000, 1);
+        return new Part(make, "gearbox", "Gearbox", 6700, 2);
     }
 
     public static Part suspension(String make) {
-        return new Part(make, "suspension", "Suspension", 1000, 1);
+        return new Part(make, "suspension", "Suspension", 12200, 2);
     }
 
     public static Part brakeDiscs(String make) {
-        return new Part(make, "brake-discs", "Brake Discs", 1000, 1);
+        return new Part(make, "brake-discs", "Brake Discs", 750, 12);
     }
 
     public static Part brakingFluid(String make) {
-        return new Part(make, "braking-fluid", "Braking Fluid", 1000, 1);
+        return new Part(make, "braking-fluid", "Braking Fluid", 85, 20);
     }
 
     public static Part ers(String make) {
-        return new Part(make, "ers", "Energy Recovery System", 1000, 1);
+        return new Part(make, "ers", "Energy Recovery System", 4600, 3);
     }
 
     public static Part adjustErsRatio(String make) {
-        return new Part(make, "adjust-ers-ratio", "Adjust ERS Ratio", 100, 1);
+        return new Part(make, "adjust-ers-ratio", "Adjust ERS Ratio", 150, 10);
     }
 
     public static Part wheels(String make) {
-        return new Part(make, "wheels", "Wheels", 1000, 1);
+        return new Part(make, "wheels", "Wheels", 5500, 16);
     }
 
     public static List<Part> getAllParts(String make) {
